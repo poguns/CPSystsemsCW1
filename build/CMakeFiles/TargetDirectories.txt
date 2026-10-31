@@ -1,0 +1,3 @@
+C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/build/CMakeFiles/cw1.dir
+C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/build/CMakeFiles/ZERO_CHECK.dir

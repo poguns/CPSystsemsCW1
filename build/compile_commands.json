@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/build",
+  "command": "C:\\TDM-GCC-64\\bin\\g++.exe -I\"C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/../contrib\" -I\"C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/../contrib/sfml/include\" -g -std=gnu++17 -o CMakeFiles\\cw1.dir\\main.cpp.obj -c \"C:\\Users\\prais\\Documents\\SET10108 - Concurrent and parallel Systems\\set10108-master\\labs\\cw1\\main.cpp\"",
+  "file": "C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/main.cpp",
+  "output": "C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/build/CMakeFiles/cw1.dir/main.cpp.obj"
+}
+]

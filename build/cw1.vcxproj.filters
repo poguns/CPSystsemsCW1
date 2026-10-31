@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\prais\Documents\SET10108 - Concurrent and parallel Systems\set10108-master\labs\cw1\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\prais\Documents\SET10108 - Concurrent and parallel Systems\set10108-master\labs\cw1\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{8F2C0494-4235-3D39-A890-B998DA72A76E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

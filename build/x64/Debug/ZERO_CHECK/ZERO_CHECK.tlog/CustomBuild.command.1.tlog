@@ -1,0 +1,10 @@
+^C:\USERS\PRAIS\DOCUMENTS\SET10108 - CONCURRENT AND PARALLEL SYSTEMS\SET10108-MASTER\LABS\CW1\BUILD\CMAKEFILES\56ECFF121BE8BC4449D1CE7C59AB03E2\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1" "-BC:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/prais/Documents/SET10108 - Concurrent and parallel Systems/set10108-master/labs/cw1/build/set10108-cw1.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
