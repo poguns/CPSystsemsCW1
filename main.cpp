@@ -120,10 +120,55 @@ int main()
     for (auto& p : fs::directory_iterator(image_folder))
         imageFilenames.push_back(p.path().u8string());
 
+
+    if (imageFilenames.empty()) {
+        std::cout <<"no images found. \n";
+        return -1;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //  YOUR CODE HERE INSTEAD, TO ORDER THE IMAGES IN A MULTI-THREADED MANNER WITHOUT BLOCKING  //
+    
+    //background threading and synchronisation
+
+    //shared concurrency control primitives 
+    std::mutex filenamesMutex;
+    std::atomic<bool> isSorted{false};
+
+    //background thread for sorting and I/O
+    std::thread sortingWorker([&imageFilenames, &filenamesMutex, &isSorted]() {
+        //parallel execution for medians
+        struct RatedFile {
+            std::string filename;
+            double medianTemp;
+        };
+
+        std::vector<RatedFile> ratedFiles(imageFilenames.size());
+
+        //medians in parallel for each filename
+        std::transform(std::execution::par, imageFilenames.begin(), imageFilenames.end(), ratedFiles.begin(), [](const std::string& path) {
+            return RatedFile{path, filename_to_median(path)};
+        });
+
+        //sort in descending order by colour temp (hot to cold)
+        std::sort(ratedFiles.begin(), ratedFiles.end(), [](const RatedFile& a, const RatedFile& b) {
+            return a.medianTemp > b.medianTemp;
+        });
+
+        //under mutex lock, update shared imageFilenames vector
+        {
+            std::lock_guard<std::mutex> lock(filenamesMutex);
+            for (size_t i = 0; i < ratedFiles.size(); ++i) {
+                imageFilenames[i] = ratedFiles[i].filename;
+            }
+            isSorted.store(true);
+        }
+        std::cout << "Background thread - Sorting complete \n";
+    });
+    sortingWorker.detach();
+
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    static_sort(imageFilenames);
 
     // Define some constants
     const int gameWidth = 800;
@@ -136,11 +181,16 @@ int main()
                             sf::Style::Titlebar | sf::Style::Close);
     window.setVerticalSyncEnabled(true);
 
-    // Load an image to begin with
+    // Load an image to begin with, now protexted by mutex
     sf::Texture texture;
-    if (!texture.loadFromFile(imageFilenames[imageIndex]))
-        return EXIT_FAILURE;
+    {
+        std::lock_guard<std::mutex> lock(filenamesMutex);
+        if (!texture.loadFromFile(imageFilenames[imageIndex]))
+            return EXIT_FAILURE;
+    }
+
     sf::Sprite sprite (texture);
+
     // Make sure the texture fits the screen
     sprite.setScale(SpriteScaleFromDimensions(texture.getSize(),gameWidth,gameHeight));
 
@@ -171,15 +221,22 @@ int main()
             // Arrow key handling!
             if (event.type == sf::Event::KeyPressed)
             {
+                // protected read/writes to share imageFilenames vector
+                std::lock_guard<std::mutex> lock(filenamesMutex);
+                if (imageFilenames.empty()) continue;
+
                 // adjust the image index
                 if (event.key.code == sf::Keyboard::Key::Left)
                     imageIndex = (imageIndex + imageFilenames.size() - 1) % imageFilenames.size();
                 else if (event.key.code == sf::Keyboard::Key::Right)
                     imageIndex = (imageIndex + 1) % imageFilenames.size();
+                
                 // get image filename
                 const auto& imageFilename = imageFilenames[imageIndex];
+                //lock-free atomic check for window title status
+                std::string title = isSorted.load() ? imageFilename : imageFilename + " [Sorting...]";
                 // set it as the window title 
-                window.setTitle(imageFilename);
+                window.setTitle(title);
                 // ... and load the appropriate texture, and put it in the sprite
                 if (texture.loadFromFile(imageFilename))
                 {
