@@ -16,6 +16,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <chrono>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -107,6 +108,9 @@ sf::Vector2f SpriteScaleFromDimensions(const sf::Vector2u& textureSize, int scre
 
 int main()
 {
+    //application start time
+    auto appStartTime = std::chrono::high_resolution_clock::now();
+
     std::srand(static_cast<unsigned int>(std::time(NULL)));
 
     // example folder to load images
@@ -126,6 +130,11 @@ int main()
         return -1;
     }
 
+    //when background sorting starts, when ui window opens
+    auto uiReadyTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> startupElapsed = uiReadyTime - appStartTime;
+    std::cout << "Performance - UI window opened and responsive in: " << startupElapsed.count() << "ms\n";
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //  YOUR CODE HERE INSTEAD, TO ORDER THE IMAGES IN A MULTI-THREADED MANNER WITHOUT BLOCKING  //
     
@@ -137,6 +146,8 @@ int main()
 
     //background thread for sorting and I/O
     std::thread sortingWorker([&imageFilenames, &filenamesMutex, &isSorted]() {
+        //total processing time
+        auto sortStartTime = std::chrono::high_resolution_clock::now();
         //parallel execution for medians
         struct RatedFile {
             std::string filename;
@@ -152,7 +163,7 @@ int main()
 
         //sort in descending order by colour temp (hot to cold)
         std::sort(ratedFiles.begin(), ratedFiles.end(), [](const RatedFile& a, const RatedFile& b) {
-            return a.medianTemp > b.medianTemp;
+            return a.medianTemp < b.medianTemp;
         });
 
         //under mutex lock, update shared imageFilenames vector
@@ -164,6 +175,16 @@ int main()
             isSorted.store(true);
         }
         std::cout << "Background thread - Sorting complete \n";
+
+        std::cout << "\n sorted image results (hot to cold) \n";
+        for (const auto& rf : ratedFiles) {
+            std::cout << rf.filename << " -> " << rf.medianTemp;
+        }
+
+        auto sortEndTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> sortElapsed = sortEndTime - sortStartTime;
+        std::cout << "Performance - background parallel sort complete in: " << sortElapsed.count() << "ms\n";
+
     });
     sortingWorker.detach();
 
