@@ -106,8 +106,61 @@ sf::Vector2f SpriteScaleFromDimensions(const sf::Vector2u& textureSize, int scre
     return { scale, scale };
 }
 
+//benchmark runner for specific thread counts
+void runBenchmarkWithThreads(int numThreads, const std::vector<std::string>& filenames) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    int totalFiles = static_cast<int>(filenames.size());
+    //handle edge case where thread count exceeds file count
+    int activeThreads = std::min(numThreads, totalFiles);
+    int chunkSz = (totalFiles + activeThreads - 1) / activeThreads;
+
+    std::vector<std::thread> workers;
+    workers.reserve(activeThreads);
+
+    for (int i = 0; i < activeThreads; ++i) {
+        int startIdx = i * chunkSz;
+        int endIdx = std::min(startIdx + chunkSz, totalFiles);
+
+        if (startIdx >= totalFiles) break;
+
+        workers.emplace_back([startIdx, endIdx, &filenames]() {
+            for (int j = startIdx; j < endIdx; ++j) {
+                // call temp calculations
+                volatile double temp = filename_to_median(filenames[j]);
+                (void)temp;
+            }
+        });
+    }
+
+    //wait for all worker threads to finish
+    for (auto& t : workers) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    
+    std::cout << "[Benchmark] Threads: " << numThreads << " | Time: " << elapsed.count() << " ms\n";
+}
+
+//function to execute the full test suite across varied threads
+void runThreadScalabilitySuite(const std::vector<std::string>& filenames) {
+    std::cout << "AMDAHL'S LAW THREAD BENCHMARK \n";
+    
+    int threadCounts[] = {1, 2, 4, 8, 16};
+    for (int tc : threadCounts) {
+        runBenchmarkWithThreads(tc, filenames);
+    }
+}
+
+
 int main()
 {
+    std::vector<std::string> imageFilenames;
+
     //application start time
     auto appStartTime = std::chrono::high_resolution_clock::now();
 
@@ -120,15 +173,16 @@ int main()
         printf("Directory \"%s\" not found: please make sure it exists, and if it's a relative path, it's under your WORKING directory\n", image_folder);
         return -1;
     }
-    std::vector<std::string> imageFilenames;
     for (auto& p : fs::directory_iterator(image_folder))
         imageFilenames.push_back(p.path().u8string());
-
 
     if (imageFilenames.empty()) {
         std::cout <<"no images found. \n";
         return -1;
     }
+
+    //thread scalability for graph data
+    runThreadScalabilitySuite (imageFilenames);
 
     //when background sorting starts, when ui window opens
     auto uiReadyTime = std::chrono::high_resolution_clock::now();
